@@ -69,45 +69,52 @@
   }
 
   .dark {
-    --background: 222 30% 8%;
-    --foreground: 0 0% 98%;
+    --background: 240 8% 8%;
+    --foreground: 0 0% 96%;
 
-    --card: 222 28% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 240 8% 12%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 222 28% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 240 8% 12%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 250 90% 72%;
-    --primary-foreground: 222 30% 8%;
-    --primary-glow: 244 75% 65%;
+    --primary: 244 80% 68%;
+    --primary-foreground: 240 8% 8%;
+    --primary-glow: 244 85% 75%;
+    --primary-shadow: 244 75% 35%;
 
-    --secondary: 174 62% 50%;
-    --secondary-foreground: 222 30% 8%;
+    --secondary: 174 70% 45%;
+    --secondary-foreground: 240 8% 8%;
+    --secondary-shadow: 174 70% 25%;
 
-    --accent: 6 90% 67%;
-    --accent-foreground: 222 30% 8%;
+    --accent: 350 85% 65%;
+    --accent-foreground: 240 8% 8%;
+    --accent-shadow: 350 85% 40%;
 
-    --muted: 222 22% 18%;
-    --muted-foreground: 240 8% 70%;
+    --muted: 240 6% 18%;
+    --muted-foreground: 240 5% 65%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
     --success: 152 55% 50%;
-    --success-foreground: 222 30% 8%;
+    --success-foreground: 240 8% 8%;
 
     --warning: 38 92% 60%;
-    --warning-foreground: 222 30% 8%;
+    --warning-foreground: 240 8% 8%;
 
-    --border: 222 22% 20%;
-    --input: 222 22% 20%;
-    --ring: 250 90% 72%;
+    --border: 240 6% 22%;
+    --input: 240 6% 22%;
+    --ring: 244 80% 68%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(244 75% 60% / 0.18), hsl(174 62% 47% / 0.18) 50%, hsl(6 90% 67% / 0.18));
+    --gradient-hero: linear-gradient(135deg, hsl(244 80% 68% / 0.10), hsl(174 70% 45% / 0.10) 50%, hsl(350 85% 65% / 0.10));
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.3), 0 6px 18px hsl(0 0% 0% / 0.25);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.45);
+    --shadow-card: 0 4px 0 0 hsl(var(--border));
+    --shadow-elegant: 0 4px 0 0 hsl(var(--primary-shadow));
+    --shadow-key-sm: 0 2px 0 0 hsl(var(--border));
+    --shadow-key-primary: 0 3px 0 0 hsl(var(--primary-shadow));
+    --shadow-key-secondary: 0 3px 0 0 hsl(var(--secondary-shadow));
+    --shadow-key-accent: 0 3px 0 0 hsl(var(--accent-shadow));
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
