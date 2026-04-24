@@ -174,7 +174,33 @@
   .prose-article hr { @apply my-8 border-border; }
 
   .tag-chip {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors;
+    @apply inline-flex items-center rounded-sm border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-foreground hover:border-primary hover:text-primary transition-colors;
+  }
+
+  /* Keycap-style 3D button & card shadows */
+  .keycap {
+    @apply border border-border bg-card shadow-[0_4px_0_0_hsl(var(--border))] transition-all duration-100;
+  }
+  .keycap-hover:hover {
+    @apply -translate-y-0.5 shadow-[0_6px_0_0_hsl(var(--border))];
+  }
+  .keycap-press:active {
+    @apply translate-y-[3px] shadow-none;
+  }
+  .keycap-primary {
+    @apply border border-primary bg-primary text-primary-foreground shadow-[0_3px_0_0_hsl(var(--primary-shadow))];
+  }
+  .keycap-secondary {
+    @apply border border-secondary bg-secondary text-secondary-foreground shadow-[0_3px_0_0_hsl(var(--secondary-shadow))];
+  }
+  .keycap-accent {
+    @apply border border-accent bg-accent text-accent-foreground shadow-[0_3px_0_0_hsl(var(--accent-shadow))];
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 }
 
