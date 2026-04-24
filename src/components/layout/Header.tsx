@@ -30,44 +30,47 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-      <div className="container flex h-16 items-center gap-3">
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
-            ‹/›
-          </span>
-          <span>devnotes</span>
+    <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur-md">
+      <div className="container flex h-16 items-center gap-4">
+        <Link to="/" className="flex items-center gap-3">
+          <span className="font-mono font-bold text-base tracking-tighter">[ devnotes ]</span>
         </Link>
 
-        <form onSubmit={submit} className="ml-2 hidden flex-1 max-w-md md:flex">
+        <div className="hidden md:block h-4 w-px bg-border" />
+
+        <form onSubmit={submit} className="hidden flex-1 max-w-sm md:flex">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by tag (e.g. react)"
-              className="pl-9 bg-muted/50 border-transparent focus-visible:bg-background"
+              placeholder="search by tag..."
+              className="pl-9 h-9 bg-background border-border font-mono text-xs rounded-sm shadow-key-sm focus-visible:ring-1 focus-visible:ring-primary"
             />
           </div>
         </form>
 
-        <nav className="ml-auto flex items-center gap-1">
+        <nav className="ml-auto flex items-center gap-2">
           {user && (
             <NavLink
               to="/bookmarks"
               className={({ isActive }) =>
-                `hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                `hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded-sm font-mono text-xs uppercase tracking-wider transition-colors ${
                   isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`
               }
             >
-              <Bookmark className="h-4 w-4" /> Bookmarks
+              <Bookmark className="h-3.5 w-3.5" /> ~/bookmarks
             </NavLink>
           )}
           {isAdmin && (
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button
+              asChild
+              size="sm"
+              className="hidden sm:inline-flex h-9 rounded-sm font-mono text-xs uppercase tracking-wider keycap-primary hover:translate-y-[1px] hover:shadow-[0_2px_0_0_hsl(var(--primary-shadow))] active:translate-y-[3px] active:shadow-none transition-all"
+            >
               <Link to="/admin/new">
-                <PenSquare className="h-4 w-4" /> Write
+                <PenSquare className="h-3.5 w-3.5" /> WRITE( )
               </Link>
             </Button>
           )}
@@ -75,30 +78,32 @@ export const Header = () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
-                    {(user.email ?? "?").charAt(0).toUpperCase()}
-                  </span>
-                </Button>
+                <button className="grid h-9 w-9 place-items-center rounded-sm border border-secondary bg-secondary text-secondary-foreground shadow-key-secondary font-mono font-bold text-xs hover:translate-y-[1px] hover:shadow-[0_2px_0_0_hsl(var(--secondary-shadow))] active:translate-y-[3px] active:shadow-none transition-all">
+                  {(user.email ?? "?").charAt(0).toUpperCase()}
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">{user.email}</div>
+              <DropdownMenuContent align="end" className="w-56 rounded-sm border-border shadow-card font-mono text-xs">
+                <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground truncate">{user.email}</div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/bookmarks"><Bookmark className="h-4 w-4" /> Bookmarks</Link>
+                  <Link to="/bookmarks"><Bookmark className="h-3.5 w-3.5" /> ~/bookmarks</Link>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
-                    <Link to="/admin"><LayoutDashboard className="h-4 w-4" /> Admin dashboard</Link>
+                    <Link to="/admin"><LayoutDashboard className="h-3.5 w-3.5" /> ~/admin</Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut}><LogOut className="h-4 w-4" /> Sign out</DropdownMenuItem>
+                <DropdownMenuItem onClick={signOut}><LogOut className="h-3.5 w-3.5" /> sign_out( )</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm">
-              <Link to="/auth"><UserIcon className="h-4 w-4" /> Sign in</Link>
+            <Button
+              asChild
+              size="sm"
+              className="h-9 rounded-sm font-mono text-xs uppercase tracking-wider keycap-primary hover:translate-y-[1px] hover:shadow-[0_2px_0_0_hsl(var(--primary-shadow))] active:translate-y-[3px] active:shadow-none transition-all"
+            >
+              <Link to="/auth"><UserIcon className="h-3.5 w-3.5" /> SIGN_IN</Link>
             </Button>
           )}
         </nav>

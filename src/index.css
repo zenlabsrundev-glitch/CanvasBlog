@@ -6,47 +6,57 @@
 
 @layer base {
   :root {
-    --background: 36 33% 97%;
-    --foreground: 222 25% 14%;
+    /* Modular Keycap System — crisp surfaces, hard shadows, mono accents */
+    --background: 240 5% 96%;
+    --foreground: 240 6% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 25% 14%;
+    --card-foreground: 240 6% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 25% 14%;
+    --popover-foreground: 240 6% 10%;
 
-    --primary: 244 75% 60%;
+    --primary: 244 75% 58%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 250 90% 72%;
+    --primary-glow: 244 80% 68%;
+    --primary-shadow: 244 75% 38%;
 
-    --secondary: 174 62% 47%;
+    --secondary: 174 78% 32%;
     --secondary-foreground: 0 0% 100%;
+    --secondary-shadow: 174 78% 22%;
 
-    --accent: 6 90% 67%;
+    --accent: 350 89% 60%;
     --accent-foreground: 0 0% 100%;
+    --accent-shadow: 350 89% 42%;
 
-    --muted: 240 14% 95%;
-    --muted-foreground: 222 12% 42%;
+    --muted: 240 5% 92%;
+    --muted-foreground: 240 4% 45%;
 
     --destructive: 0 78% 56%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 60% 42%;
+    --success: 152 60% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 55%;
-    --warning-foreground: 222 25% 14%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 240 6% 10%;
 
-    --border: 240 12% 90%;
-    --input: 240 12% 90%;
-    --ring: 244 75% 60%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 244 75% 58%;
 
-    --radius: 0.75rem;
+    --radius: 0.375rem;
 
-    --gradient-hero: linear-gradient(135deg, hsl(244 75% 60% / 0.10), hsl(174 62% 47% / 0.10) 50%, hsl(6 90% 67% / 0.10));
+    --gradient-hero: linear-gradient(135deg, hsl(244 75% 58% / 0.06), hsl(174 78% 32% / 0.06) 50%, hsl(350 89% 60% / 0.06));
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --shadow-card: 0 1px 2px hsl(222 25% 14% / 0.04), 0 4px 16px hsl(222 25% 14% / 0.04);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
+
+    /* Hard "keycap" shadows — flat, crisp, no blur */
+    --shadow-card: 0 4px 0 0 hsl(var(--border));
+    --shadow-elegant: 0 4px 0 0 hsl(var(--primary-shadow));
+    --shadow-key-sm: 0 2px 0 0 hsl(var(--border));
+    --shadow-key-primary: 0 3px 0 0 hsl(var(--primary-shadow));
+    --shadow-key-secondary: 0 3px 0 0 hsl(var(--secondary-shadow));
+    --shadow-key-accent: 0 3px 0 0 hsl(var(--accent-shadow));
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -59,45 +69,52 @@
   }
 
   .dark {
-    --background: 222 30% 8%;
-    --foreground: 0 0% 98%;
+    --background: 240 8% 8%;
+    --foreground: 0 0% 96%;
 
-    --card: 222 28% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 240 8% 12%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 222 28% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 240 8% 12%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 250 90% 72%;
-    --primary-foreground: 222 30% 8%;
-    --primary-glow: 244 75% 65%;
+    --primary: 244 80% 68%;
+    --primary-foreground: 240 8% 8%;
+    --primary-glow: 244 85% 75%;
+    --primary-shadow: 244 75% 35%;
 
-    --secondary: 174 62% 50%;
-    --secondary-foreground: 222 30% 8%;
+    --secondary: 174 70% 45%;
+    --secondary-foreground: 240 8% 8%;
+    --secondary-shadow: 174 70% 25%;
 
-    --accent: 6 90% 67%;
-    --accent-foreground: 222 30% 8%;
+    --accent: 350 85% 65%;
+    --accent-foreground: 240 8% 8%;
+    --accent-shadow: 350 85% 40%;
 
-    --muted: 222 22% 18%;
-    --muted-foreground: 240 8% 70%;
+    --muted: 240 6% 18%;
+    --muted-foreground: 240 5% 65%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
     --success: 152 55% 50%;
-    --success-foreground: 222 30% 8%;
+    --success-foreground: 240 8% 8%;
 
     --warning: 38 92% 60%;
-    --warning-foreground: 222 30% 8%;
+    --warning-foreground: 240 8% 8%;
 
-    --border: 222 22% 20%;
-    --input: 222 22% 20%;
-    --ring: 250 90% 72%;
+    --border: 240 6% 22%;
+    --input: 240 6% 22%;
+    --ring: 244 80% 68%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(244 75% 60% / 0.18), hsl(174 62% 47% / 0.18) 50%, hsl(6 90% 67% / 0.18));
+    --gradient-hero: linear-gradient(135deg, hsl(244 80% 68% / 0.10), hsl(174 70% 45% / 0.10) 50%, hsl(350 85% 65% / 0.10));
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.3), 0 6px 18px hsl(0 0% 0% / 0.25);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.45);
+    --shadow-card: 0 4px 0 0 hsl(var(--border));
+    --shadow-elegant: 0 4px 0 0 hsl(var(--primary-shadow));
+    --shadow-key-sm: 0 2px 0 0 hsl(var(--border));
+    --shadow-key-primary: 0 3px 0 0 hsl(var(--primary-shadow));
+    --shadow-key-secondary: 0 3px 0 0 hsl(var(--secondary-shadow));
+    --shadow-key-accent: 0 3px 0 0 hsl(var(--accent-shadow));
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -121,8 +138,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "ss01", "cv11";
   }
+
+  .font-display { font-family: "Space Grotesk", "Inter", sans-serif; letter-spacing: -0.02em; }
+  .font-mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 }
 
 /* Prose / markdown article styling */
@@ -153,7 +174,33 @@
   .prose-article hr { @apply my-8 border-border; }
 
   .tag-chip {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors;
+    @apply inline-flex items-center rounded-sm border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-foreground hover:border-primary hover:text-primary transition-colors;
+  }
+
+  /* Keycap-style 3D button & card shadows */
+  .keycap {
+    @apply border border-border bg-card shadow-[0_4px_0_0_hsl(var(--border))] transition-all duration-100;
+  }
+  .keycap-hover:hover {
+    @apply -translate-y-0.5 shadow-[0_6px_0_0_hsl(var(--border))];
+  }
+  .keycap-press:active {
+    @apply translate-y-[3px] shadow-none;
+  }
+  .keycap-primary {
+    @apply border border-primary bg-primary text-primary-foreground shadow-[0_3px_0_0_hsl(var(--primary-shadow))];
+  }
+  .keycap-secondary {
+    @apply border border-secondary bg-secondary text-secondary-foreground shadow-[0_3px_0_0_hsl(var(--secondary-shadow))];
+  }
+  .keycap-accent {
+    @apply border border-accent bg-accent text-accent-foreground shadow-[0_3px_0_0_hsl(var(--accent-shadow))];
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 }
 
