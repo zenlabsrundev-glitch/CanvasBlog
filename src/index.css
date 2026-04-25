@@ -142,8 +142,14 @@
     font-feature-settings: "ss01", "cv11";
   }
 
-  .font-display { font-family: "Space Grotesk", "Inter", sans-serif; letter-spacing: -0.02em; }
-  .font-mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .font-display {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
 }
 
 /* Prose / markdown article styling */
@@ -151,27 +157,77 @@
   .prose-article {
     @apply text-foreground leading-relaxed;
   }
-  .prose-article h1 { @apply text-3xl font-bold mt-8 mb-4 tracking-tight; }
-  .prose-article h2 { @apply text-2xl font-bold mt-8 mb-3 tracking-tight; }
-  .prose-article h3 { @apply text-xl font-semibold mt-6 mb-2; }
-  .prose-article h4 { @apply text-lg font-semibold mt-5 mb-2; }
-  .prose-article p { @apply my-4; }
-  .prose-article a { @apply text-primary underline-offset-4 hover:underline; }
-  .prose-article ul { @apply list-disc pl-6 my-4 space-y-1; }
-  .prose-article ol { @apply list-decimal pl-6 my-4 space-y-1; }
-  .prose-article blockquote { @apply border-l-4 border-primary/40 pl-4 italic text-muted-foreground my-4; }
+
+  .prose-article h1 {
+    @apply text-3xl font-bold mt-8 mb-4 tracking-tight;
+  }
+
+  .prose-article h2 {
+    @apply text-2xl font-bold mt-8 mb-3 tracking-tight;
+  }
+
+  .prose-article h3 {
+    @apply text-xl font-semibold mt-6 mb-2;
+  }
+
+  .prose-article h4 {
+    @apply text-lg font-semibold mt-5 mb-2;
+  }
+
+  .prose-article p {
+    @apply my-4;
+  }
+
+  .prose-article a {
+    @apply text-primary underline-offset-4 hover:underline;
+  }
+
+  .prose-article ul {
+    @apply list-disc pl-6 my-4 space-y-1;
+  }
+
+  .prose-article ol {
+    @apply list-decimal pl-6 my-4 space-y-1;
+  }
+
+  .prose-article blockquote {
+    @apply border-l-4 border-primary/40 pl-4 italic text-muted-foreground my-4;
+  }
+
   .prose-article code:not(pre code) {
     @apply rounded bg-muted px-1.5 py-0.5 text-[0.9em] font-mono text-accent;
   }
+
   .prose-article pre {
     @apply rounded-lg p-4 my-5 overflow-x-auto bg-[hsl(222_30%_12%)] text-[hsl(0_0%_95%)] text-sm;
   }
-  .prose-article pre code { @apply font-mono; background: transparent !important; padding: 0 !important; color: inherit !important; }
-  .prose-article table { @apply w-full text-sm my-5 border border-border rounded-lg overflow-hidden; }
-  .prose-article th { @apply bg-muted text-left px-3 py-2 font-semibold; }
-  .prose-article td { @apply border-t border-border px-3 py-2; }
-  .prose-article img { @apply rounded-lg my-4 max-w-full; }
-  .prose-article hr { @apply my-8 border-border; }
+
+  .prose-article pre code {
+    @apply font-mono;
+    background: transparent !important;
+    padding: 0 !important;
+    color: inherit !important;
+  }
+
+  .prose-article table {
+    @apply w-full text-sm my-5 border border-border rounded-lg overflow-hidden;
+  }
+
+  .prose-article th {
+    @apply bg-muted text-left px-3 py-2 font-semibold;
+  }
+
+  .prose-article td {
+    @apply border-t border-border px-3 py-2;
+  }
+
+  .prose-article img {
+    @apply rounded-lg my-4 max-w-full;
+  }
+
+  .prose-article hr {
+    @apply my-8 border-border;
+  }
 
   .tag-chip {
     @apply inline-flex items-center rounded-sm border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-foreground hover:border-primary hover:text-primary transition-colors;
@@ -181,21 +237,27 @@
   .keycap {
     @apply border border-border bg-card shadow-[0_4px_0_0_hsl(var(--border))] transition-all duration-100;
   }
+
   .keycap-hover:hover {
     @apply -translate-y-0.5 shadow-[0_6px_0_0_hsl(var(--border))];
   }
+
   .keycap-press:active {
     @apply translate-y-[3px] shadow-none;
   }
+
   .keycap-primary {
     @apply border border-primary bg-primary text-primary-foreground shadow-[0_3px_0_0_hsl(var(--primary-shadow))];
   }
+
   .keycap-secondary {
     @apply border border-secondary bg-secondary text-secondary-foreground shadow-[0_3px_0_0_hsl(var(--secondary-shadow))];
   }
+
   .keycap-accent {
     @apply border border-accent bg-accent text-accent-foreground shadow-[0_3px_0_0_hsl(var(--accent-shadow))];
   }
+
   .grid-bg {
     background-image:
       linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
@@ -205,10 +267,39 @@
 }
 
 /* highlight.js theme override for code blocks */
-.hljs { background: transparent !important; color: hsl(0 0% 95%); }
-.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: hsl(250 90% 78%); }
-.hljs-string, .hljs-attr { color: hsl(152 60% 65%); }
-.hljs-number, .hljs-literal { color: hsl(38 92% 65%); }
-.hljs-comment { color: hsl(240 8% 55%); font-style: italic; }
-.hljs-title, .hljs-function, .hljs-name { color: hsl(174 70% 65%); }
-.hljs-tag, .hljs-meta { color: hsl(6 90% 70%); }
+.hljs {
+  background: transparent !important;
+  color: hsl(0 0% 95%);
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in {
+  color: hsl(250 90% 78%);
+}
+
+.hljs-string,
+.hljs-attr {
+  color: hsl(152 60% 65%);
+}
+
+.hljs-number,
+.hljs-literal {
+  color: hsl(38 92% 65%);
+}
+
+.hljs-comment {
+  color: hsl(240 8% 55%);
+  font-style: italic;
+}
+
+.hljs-title,
+.hljs-function,
+.hljs-name {
+  color: hsl(174 70% 65%);
+}
+
+.hljs-tag,
+.hljs-meta {
+  color: hsl(6 90% 70%);
+}
