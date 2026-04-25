@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { MOCK_POSTS } from "@/lib/mock-data";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,30 +16,15 @@ const Tag = () => {
   }, [tag]);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: postRows } = await supabase
-        .from("posts")
-        .select("id, slug, title, excerpt, tags, cover_color, body_md, published_at")
-        .eq("status", "published")
-        .contains("tags", [tag])
-        .order("published_at", { ascending: false });
-      const ids = (postRows ?? []).map((p) => p.id);
-      const [{ data: lr }, { data: cr }] = await Promise.all([
-        supabase.from("likes").select("post_id").in("post_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
-        supabase.from("comments").select("post_id").in("post_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
-      ]);
-      const counts = (rows: { post_id: string }[] | null) => {
-        const m = new Map<string, number>();
-        (rows ?? []).forEach((r) => m.set(r.post_id, (m.get(r.post_id) ?? 0) + 1));
-        return m;
-      };
-      const lc = counts(lr);
-      const cc = counts(cr);
-      setPosts((postRows ?? []).map((p) => ({ ...p, likes: lc.get(p.id) ?? 0, comments: cc.get(p.id) ?? 0 })));
+    setLoading(true);
+    // Simulate API delay
+    setTimeout(() => {
+      const filtered = MOCK_POSTS.filter(p => p.tags.includes(tag.toLowerCase()));
+      setPosts(filtered);
       setLoading(false);
-    })();
+    }, 500);
   }, [tag]);
+
 
   return (
     <SiteLayout>

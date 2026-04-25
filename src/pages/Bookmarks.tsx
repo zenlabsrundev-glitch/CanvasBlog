@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MOCK_POSTS } from "@/lib/mock-data";
 
 const Bookmarks = () => {
   const { user, loading: authLoading } = useAuth();
@@ -20,36 +20,14 @@ const Bookmarks = () => {
       navigate("/auth");
       return;
     }
-    (async () => {
-      setLoading(true);
-      const { data: bm } = await supabase
-        .from("bookmarks")
-        .select("post_id, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      const ids = (bm ?? []).map((b) => b.post_id);
-      if (ids.length === 0) { setPosts([]); setLoading(false); return; }
-      const { data: postRows } = await supabase
-        .from("posts")
-        .select("id, slug, title, excerpt, tags, cover_color, body_md, published_at")
-        .in("id", ids);
-      const [{ data: lr }, { data: cr }] = await Promise.all([
-        supabase.from("likes").select("post_id").in("post_id", ids),
-        supabase.from("comments").select("post_id").in("post_id", ids),
-      ]);
-      const counts = (rows: { post_id: string }[] | null) => {
-        const m = new Map<string, number>();
-        (rows ?? []).forEach((r) => m.set(r.post_id, (m.get(r.post_id) ?? 0) + 1));
-        return m;
-      };
-      const lc = counts(lr); const cc = counts(cr);
-      const order = new Map(ids.map((id, i) => [id, i]));
-      const enriched = (postRows ?? [])
-        .map((p) => ({ ...p, likes: lc.get(p.id) ?? 0, comments: cc.get(p.id) ?? 0 }))
-        .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
-      setPosts(enriched);
+    
+    setLoading(true);
+    // Simulate API delay
+    setTimeout(() => {
+      // In demo, just show all posts as bookmarked for the logged in user
+      setPosts(MOCK_POSTS);
       setLoading(false);
-    })();
+    }, 500);
   }, [user, authLoading, navigate]);
 
   return (

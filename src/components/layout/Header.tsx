@@ -11,10 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-
 export const Header = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, signOut: authSignOut } = useAuth();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
 
@@ -25,7 +23,7 @@ export const Header = () => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    authSignOut?.();
     navigate("/");
   };
 

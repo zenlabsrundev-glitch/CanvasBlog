@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+// Standard Jest/CRA test
 
 describe("example", () => {
   it("should pass", () => {

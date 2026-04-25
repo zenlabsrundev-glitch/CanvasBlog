@@ -1,54 +1,49 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Session, User } from "@supabase/supabase-js";
 
 export type Role = "admin" | "reader";
 
+interface AuthUser {
+  id: string;
+  email: string;
+  role: Role;
+}
+
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem("devnotes_auth");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
+  const isAdmin = user?.role === "admin";
 
-    async function loadRoles(userId: string) {
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-      if (!mounted) return;
-      setRoles((data ?? []).map((r) => r.role as Role));
-    }
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (!mounted) return;
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        // defer to avoid deadlock
-        setTimeout(() => loadRoles(s.user.id), 0);
-      } else {
-        setRoles([]);
-      }
-    });
-
-    (async () => {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      if (!mounted) return;
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        await loadRoles(s.user.id);
-      }
-      if (mounted) setLoading(false);
-    })();
-
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
+  const signIn = (email: string) => {
+    setLoading(true);
+    // Simulate auth logic
+    const role: Role = (email.toLowerCase().includes("admin") || email === "farhanbasheerfarhan399@gmail.com") 
+      ? "admin" 
+      : "reader";
+    const newUser: AuthUser = {
+      id: Math.random().toString(36).substr(2, 9),
+      email,
+      role
     };
-  }, []);
+    localStorage.setItem("devnotes_auth", JSON.stringify(newUser));
+    setUser(newUser);
+    setLoading(false);
+  };
 
-  const isAdmin = roles.includes("admin");
+  const signOut = () => {
+    localStorage.removeItem("devnotes_auth");
+    setUser(null);
+  };
 
-  return { session, user, roles, isAdmin, loading };
+  return { 
+    session: user ? { user } : null, 
+    user, 
+    isAdmin, 
+    loading,
+    signIn,
+    signOut
+  };
 }

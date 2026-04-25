@@ -1,102 +1,71 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
+import { UserLoginForm } from "@/components/auth/UserLoginForm";
 
 const Auth = () => {
   const [sp] = useSearchParams();
-  const initialMode = sp.get("mode") === "signup" ? "signup" : "signin";
-  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const initialTab = sp.get("role") === "admin" ? "admin" : "user";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    document.title = mode === "signin" ? "Sign in · devnotes" : "Create account · devnotes";
-  }, [mode]);
-
-  useEffect(() => {
-    if (user) navigate("/", { replace: true });
-  }, [user, navigate]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: displayName || email.split("@")[0] },
-          },
-        });
-        if (error) throw error;
-        toast({ title: "Welcome!", description: "Account created. You're now signed in." });
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast({ title: "Welcome back" });
-      }
-      navigate("/");
-    } catch (err: any) {
-      toast({ title: "Authentication error", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
+    document.title = activeTab === "admin" ? "Admin Login · devnotes" : "Reader Login · devnotes";
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen grid place-items-center bg-gradient-hero px-4 py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl mb-6 justify-center">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">‹/›</span>
-          devnotes
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl mb-6 justify-center transition-transform hover:scale-105">
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant font-mono">‹/›</span>
+          <span className="tracking-tighter">devnotes</span>
         </Link>
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>{mode === "signin" ? "Welcome back" : "Create your account"}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {mode === "signin" ? "Sign in to comment, like, and bookmark." : "Join the community to engage with posts."}
+        <Card className="shadow-card border-border overflow-hidden">
+          <CardHeader className="bg-muted/30 pb-4">
+            <CardTitle className="text-2xl font-display font-bold">Welcome back</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Select your access portal below to continue.
             </p>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={submit} className="space-y-4">
-              {mode === "signup" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Display name</Label>
-                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Ada Lovelace" />
-                </div>
-              )}
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-              </Button>
-            </form>
-            <p className="mt-4 text-sm text-center text-muted-foreground">
-              {mode === "signin" ? (
-                <>New here? <button className="text-primary font-medium hover:underline" onClick={() => setMode("signup")}>Create an account</button></>
-              ) : (
-                <>Already have an account? <button className="text-primary font-medium hover:underline" onClick={() => setMode("signin")}>Sign in</button></>
-              )}
-            </p>
+          <CardContent className="pt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4 bg-muted/50 p-1 rounded-sm">
+                <TabsTrigger 
+                  value="user" 
+                  className="rounded-sm font-mono text-[10px] uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
+                  Reader Portal
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="admin"
+                  className="rounded-sm font-mono text-[10px] uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
+                  Admin Portal
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="user">
+                <UserLoginForm />
+              </TabsContent>
+              
+              <TabsContent value="admin">
+                <AdminLoginForm />
+              </TabsContent>
+            </Tabs>
+            
+            <div className="mt-8 pt-6 border-t border-dashed border-border">
+              <p className="text-xs text-center text-muted-foreground">
+                By signing in, you agree to our markdown deployment standards.
+              </p>
+              <Link to="/" className="block mt-4 text-center text-xs font-mono uppercase tracking-widest text-primary hover:underline">
+                ← Return to root
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

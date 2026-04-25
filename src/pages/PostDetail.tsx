@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Bookmark, Heart, MessageCircle, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,8 @@ type Comment = {
   profile?: { display_name: string | null } | null;
 };
 
+import { MOCK_POSTS, MOCK_COMMENTS } from "@/lib/mock-data";
+
 const PostDetail = () => {
   const { slug } = useParams();
   const { user, isAdmin } = useAuth();
@@ -47,55 +49,24 @@ const PostDetail = () => {
 
   useEffect(() => {
     if (!slug) return;
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("posts")
-        .select("id, slug, title, excerpt, body_md, tags, cover_color, published_at, status")
-        .eq("slug", slug)
-        .maybeSingle();
-      if (error || !data) {
+    setLoading(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      const foundPost = MOCK_POSTS.find(p => p.slug === slug);
+      if (!foundPost) {
         setLoading(false);
         return;
       }
-      setPost(data as Post);
-      document.title = `${data.title} · devnotes`;
-      const meta = document.querySelector('meta[name="description"]');
-      if (meta && data.excerpt) meta.setAttribute("content", data.excerpt);
-
-      const [{ data: lr }, { data: cr }] = await Promise.all([
-        supabase.from("likes").select("user_id").eq("post_id", data.id),
-        supabase
-          .from("comments")
-          .select("id, body, created_at, user_id")
-          .eq("post_id", data.id)
-          .order("created_at", { ascending: false }),
-      ]);
-      setLikes(lr?.length ?? 0);
-      setLiked(!!user && !!lr?.some((r) => r.user_id === user.id));
-
-      // load profiles for comments
-      const userIds = Array.from(new Set((cr ?? []).map((c) => c.user_id)));
-      const { data: profs } = userIds.length
-        ? await supabase.from("profiles").select("id, display_name").in("id", userIds)
-        : { data: [] as any[] };
-      const profMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
-      setComments(((cr ?? []) as Comment[]).map((c) => ({ ...c, profile: profMap.get(c.user_id) ?? null })));
-
-      if (user) {
-        const { data: bm } = await supabase
-          .from("bookmarks")
-          .select("id")
-          .eq("post_id", data.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        setBookmarked(!!bm);
-      } else {
-        setBookmarked(false);
-      }
+      
+      setPost(foundPost as unknown as Post);
+      document.title = `${foundPost.title} · devnotes`;
+      
+      setLikes(foundPost.likes);
+      setComments(MOCK_COMMENTS.filter(c => c.post_id === foundPost.id));
       setLoading(false);
-    })();
-  }, [slug, user]);
+    }, 500);
+  }, [slug]);
 
   const requireAuth = () => {
     if (!user) {
@@ -109,27 +80,18 @@ const PostDetail = () => {
   const toggleLike = async () => {
     if (!requireAuth() || !post || !user) return;
     if (liked) {
-      await supabase.from("likes").delete().eq("post_id", post.id).eq("user_id", user.id);
       setLiked(false);
       setLikes((n) => Math.max(0, n - 1));
     } else {
-      const { error } = await supabase.from("likes").insert({ post_id: post.id, user_id: user.id });
-      if (!error) {
-        setLiked(true);
-        setLikes((n) => n + 1);
-      }
+      setLiked(true);
+      setLikes((n) => n + 1);
     }
   };
 
   const toggleBookmark = async () => {
     if (!requireAuth() || !post || !user) return;
-    if (bookmarked) {
-      await supabase.from("bookmarks").delete().eq("post_id", post.id).eq("user_id", user.id);
-      setBookmarked(false);
-    } else {
-      const { error } = await supabase.from("bookmarks").insert({ post_id: post.id, user_id: user.id });
-      if (!error) setBookmarked(true);
-    }
+    setBookmarked(!bookmarked);
+    toast({ title: bookmarked ? "Removed from bookmarks" : "Saved to bookmarks" });
   };
 
   const submitComment = async (e: React.FormEvent) => {
@@ -138,29 +100,26 @@ const PostDetail = () => {
     const body = newComment.trim();
     if (!body) return;
     setPosting(true);
-    const { data, error } = await supabase
-      .from("comments")
-      .insert({ post_id: post.id, user_id: user.id, body })
-      .select("id, body, created_at, user_id")
-      .single();
-    setPosting(false);
-    if (error) {
-      toast({ title: "Couldn't post comment", description: error.message, variant: "destructive" });
-      return;
-    }
-    const { data: prof } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
-    setComments((prev) => [{ ...(data as Comment), profile: prof ?? null }, ...prev]);
-    setNewComment("");
+    
+    // Simulate API delay
+    setTimeout(() => {
+      const newC: Comment = {
+        id: Math.random().toString(36).substr(2, 9),
+        body,
+        created_at: new Date().toISOString(),
+        user_id: user.id,
+        profile: { display_name: "You" }
+      };
+      setComments((prev) => [newC, ...prev]);
+      setNewComment("");
+      setPosting(false);
+      toast({ title: "Comment posted (local only)" });
+    }, 500);
   };
 
   const deleteComment = async (id: string) => {
-    const prev = comments;
     setComments((c) => c.filter((x) => x.id !== id));
-    const { error } = await supabase.from("comments").delete().eq("id", id);
-    if (error) {
-      setComments(prev);
-      toast({ title: "Couldn't delete", description: error.message, variant: "destructive" });
-    }
+    toast({ title: "Comment deleted (local only)" });
   };
 
   const heroBg = useMemo(() => coverBg(post?.cover_color), [post?.cover_color]);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ function greet(name: string) {
 > Tip: use the right pane to preview live.
 `;
 
+import { MOCK_POSTS } from "@/lib/mock-data";
+
 const Editor = () => {
   const { id } = useParams();
   const isEdit = !!id;
@@ -53,20 +55,22 @@ const Editor = () => {
     if (authLoading) return;
     if (!isAdmin) { navigate("/"); return; }
     if (!isEdit) { setLoading(false); return; }
-    (async () => {
-      const { data, error } = await supabase.from("posts").select("*").eq("id", id!).maybeSingle();
-      if (error || !data) { toast({ title: "Couldn't load post", variant: "destructive" }); navigate("/admin"); return; }
-      setTitle(data.title);
-      setSlug(data.slug);
-      setExcerpt(data.excerpt ?? "");
-      setTagsInput((data.tags ?? []).join(", "));
-      setCoverColor(data.cover_color);
-      setBody(data.body_md || "");
-      setStatus(data.status as "draft" | "published");
-      setSlugTouched(true);
+    
+    // Simulate loading existing post
+    setTimeout(() => {
+      const found = MOCK_POSTS.find(p => p.id === id);
+      if (found) {
+        setTitle(found.title);
+        setSlug(found.slug);
+        setExcerpt(found.excerpt ?? "");
+        setTagsInput((found.tags ?? []).join(", "));
+        setCoverColor(found.cover_color);
+        setBody(found.body_md || "");
+        setStatus(found.status);
+        setSlugTouched(true);
+      }
       setLoading(false);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 500);
   }, [isAdmin, authLoading, id]);
 
   useEffect(() => {
@@ -84,44 +88,18 @@ const Editor = () => {
     const finalSlug = slug.trim() || slugify(title);
     if (!finalSlug) { toast({ title: "Slug is required", variant: "destructive" }); return; }
     setSaving(true);
-    const payload: any = {
-      title: title.trim(),
-      slug: finalSlug,
-      excerpt: excerpt.trim() || null,
-      tags,
-      cover_color: coverColor,
-      body_md: body,
-      status: nextStatus,
-    };
-    if (nextStatus === "published") {
-      payload.published_at = new Date().toISOString();
-    } else if (status === "published" && nextStatus === "draft") {
-      payload.published_at = null;
-    }
-
-    let error: any = null;
-    let savedSlug = finalSlug;
-    if (isEdit) {
-      const r = await supabase.from("posts").update(payload).eq("id", id!);
-      error = r.error;
-    } else {
-      payload.author_id = user.id;
-      const r = await supabase.from("posts").insert(payload).select("id, slug").single();
-      error = r.error;
-      if (r.data) savedSlug = r.data.slug;
-    }
-    setSaving(false);
-    if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    setStatus(nextStatus);
-    toast({ title: nextStatus === "published" ? "Published 🎉" : "Draft saved" });
-    if (nextStatus === "published") {
-      navigate(`/post/${savedSlug}`);
-    } else if (!isEdit) {
-      navigate("/admin");
-    }
+    
+    // Simulate save delay
+    setTimeout(() => {
+      setSaving(false);
+      setStatus(nextStatus);
+      toast({ title: nextStatus === "published" ? "Published 🎉 (Demo)" : "Draft saved (Demo)" });
+      if (nextStatus === "published") {
+        navigate(`/post/${finalSlug}`);
+      } else if (!isEdit) {
+        navigate("/admin");
+      }
+    }, 1000);
   }
 
   if (loading) {

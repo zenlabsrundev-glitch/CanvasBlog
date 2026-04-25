@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Edit, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +18,8 @@ type Row = {
   published_at: string | null; updated_at: string; tags: string[];
 };
 
+import { MOCK_POSTS } from "@/lib/mock-data";
+
 const Admin = () => {
   const { isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -31,38 +33,29 @@ const Admin = () => {
     if (authLoading) return;
     if (!isAdmin) { navigate("/"); return; }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, authLoading]);
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase
-      .from("posts")
-      .select("id, slug, title, status, published_at, updated_at, tags")
-      .order("updated_at", { ascending: false });
-    setRows((data ?? []) as Row[]);
-    setLoading(false);
+    // Simulate API delay
+    setTimeout(() => {
+      setRows(MOCK_POSTS.map(p => ({
+        ...p,
+        updated_at: p.published_at
+      })) as unknown as Row[]);
+      setLoading(false);
+    }, 500);
   }
 
   async function togglePublish(row: Row) {
     const next = row.status === "published" ? "draft" : "published";
-    const { error } = await supabase
-      .from("posts")
-      .update({
-        status: next,
-        published_at: next === "published" ? new Date().toISOString() : null,
-      })
-      .eq("id", row.id);
-    if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
+    setRows(prev => prev.map(r => r.id === row.id ? { ...r, status: next } : r));
     toast({ title: next === "published" ? "Published" : "Unpublished" });
-    load();
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from("posts").delete().eq("id", id);
-    if (error) { toast({ title: "Delete failed", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Post deleted" });
     setRows((r) => r.filter((x) => x.id !== id));
+    toast({ title: "Post deleted (local only)" });
   }
 
   return (

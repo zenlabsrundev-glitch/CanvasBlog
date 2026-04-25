@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Terminal } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import { MOCK_POSTS } from "@/lib/mock-data";
 
 const Home = () => {
   const [posts, setPosts] = useState<PostCardData[]>([]);
@@ -22,41 +24,15 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: postRows } = await supabase
-        .from("posts")
-        .select("id, slug, title, excerpt, tags, cover_color, body_md, published_at")
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .limit(30);
-
-      const ids = (postRows ?? []).map((p) => p.id);
-      const [{ data: likeRows }, { data: commentRows }] = await Promise.all([
-        supabase.from("likes").select("post_id").in("post_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
-        supabase.from("comments").select("post_id").in("post_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
-      ]);
-
-      const counts = (rows: { post_id: string }[] | null) => {
-        const m = new Map<string, number>();
-        (rows ?? []).forEach((r) => m.set(r.post_id, (m.get(r.post_id) ?? 0) + 1));
-        return m;
-      };
-      const lc = counts(likeRows);
-      const cc = counts(commentRows);
-
-      const enriched: PostCardData[] = (postRows ?? []).map((p) => ({
-        ...p,
-        likes: lc.get(p.id) ?? 0,
-        comments: cc.get(p.id) ?? 0,
-      }));
-      setPosts(enriched);
-
+    setLoading(true);
+    // Simulate API delay
+    setTimeout(() => {
+      setPosts(MOCK_POSTS);
       const tagSet = new Set<string>();
-      enriched.forEach((p) => p.tags.forEach((t) => tagSet.add(t)));
+      MOCK_POSTS.forEach((p) => p.tags.forEach((t) => tagSet.add(t)));
       setTags(Array.from(tagSet).sort().slice(0, 12));
       setLoading(false);
-    })();
+    }, 500);
   }, []);
 
   const visiblePosts = activeTag
