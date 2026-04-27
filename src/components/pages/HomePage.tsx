@@ -2,15 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Terminal } from "lucide-react";
 
-import { PostCard, type PostCardData } from "@/components/PostCard";
+import { PostCard } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-
-import { MOCK_POSTS } from "@/lib/mock-data";
+import api from "@/lib/api";
 
 export default function HomePage() {
-  const [posts, setPosts] = useState<PostCardData[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,19 +22,28 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setPosts(MOCK_POSTS);
-      const tagSet = new Set<string>();
-      MOCK_POSTS.forEach((p) => p.tags.forEach((t) => tagSet.add(t)));
-      setTags(Array.from(tagSet).sort().slice(0, 12));
-      setLoading(false);
-    }, 500);
+    async function fetchPosts() {
+      setLoading(true);
+      try {
+        const response = await api.get("/posts");
+        const data = response.data;
+        setPosts(data);
+        
+        // Extract unique tags
+        const tagSet = new Set<string>();
+        data.forEach((p: any) => p.tags?.forEach((t: string) => tagSet.add(t)));
+        setTags(Array.from(tagSet).sort().slice(0, 12));
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPosts();
   }, []);
 
   const visiblePosts = activeTag
-    ? posts.filter((p) => p.tags.includes(activeTag))
+    ? posts.filter((p) => p.tags?.includes(activeTag))
     : posts;
 
   const featured = posts[0];

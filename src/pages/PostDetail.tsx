@@ -10,27 +10,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { coverBg, formatDate, readingTime } from "@/lib/posts";
+import api from "@/lib/api";
 
 type Post = {
   id: string;
   slug: string;
   title: string;
   excerpt: string | null;
-  body_md: string;
+  content: string;
   tags: string[];
-  cover_color: string;
-  published_at: string | null;
-  status: string;
-};
-type Comment = {
-  id: string;
-  body: string;
-  created_at: string;
-  user_id: string;
-  profile?: { display_name: string | null } | null;
+  coverColor: string;
+  createdAt: string;
+  likesCount: number;
+  commentsCount: number;
+  published: boolean;
+  liked?: boolean;
+  bookmarked?: boolean;
 };
 
-import { MOCK_POSTS, MOCK_COMMENTS } from "@/lib/mock-data";
+type Comment = {
+  id: string;
+  authorName: string;
+  content: string;
+  createdAt: string;
+  userId?: string;
+};
 
 const PostDetail = () => {
   const { slug } = useParams();
@@ -49,23 +53,24 @@ const PostDetail = () => {
 
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      const foundPost = MOCK_POSTS.find(p => p.slug === slug);
-      if (!foundPost) {
+    async function fetchPost() {
+      setLoading(true);
+      try {
+        const response = await api.get(`/posts/${slug}`);
+        const data = response.data;
+        setPost(data);
+        setLikes(data.likesCount || 0);
+        setLiked(!!data.liked);
+        setBookmarked(!!data.bookmarked);
+        setComments(data.comments || []);
+        document.title = `${data.title} · devnotes`;
+      } catch (error) {
+        console.error("Failed to fetch post:", error);
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      setPost(foundPost as unknown as Post);
-      document.title = `${foundPost.title} · devnotes`;
-      
-      setLikes(foundPost.likes);
-      setComments(MOCK_COMMENTS.filter(c => c.post_id === foundPost.id));
-      setLoading(false);
-    }, 500);
+    }
+    fetchPost();
   }, [slug]);
 
   const requireAuth = () => {
@@ -79,50 +84,69 @@ const PostDetail = () => {
 
   const toggleLike = async () => {
     if (!requireAuth() || !post || !user) return;
-    if (liked) {
-      setLiked(false);
-      setLikes((n) => Math.max(0, n - 1));
-    } else {
-      setLiked(true);
-      setLikes((n) => n + 1);
+    
+    try {
+      const response = await api.post(`/interactions/like/${post.id}`);
+      const isLiked = response.data.liked;
+      setLiked(isLiked);
+      setLikes((n) => isLiked ? n + 1 : Math.max(0, n - 1));
+      toast({ 
+        title: isLiked ? "Post liked" : "Like removed",
+        description: isLiked ? "Thanks for your feedback!" : ""
+      });
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+      toast({ title: "Action failed", variant: "destructive" });
     }
   };
 
   const toggleBookmark = async () => {
     if (!requireAuth() || !post || !user) return;
-    setBookmarked(!bookmarked);
-    toast({ title: bookmarked ? "Removed from bookmarks" : "Saved to bookmarks" });
+    
+    try {
+      const response = await api.post(`/interactions/bookmark/${post.id}`);
+      const isBookmarked = response.data.bookmarked;
+      setBookmarked(isBookmarked);
+      toast({ 
+        title: isBookmarked ? "Saved to bookmarks" : "Removed from bookmarks",
+        description: isBookmarked ? "Find it later in your ~/bookmarks" : ""
+      });
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+      toast({ title: "Action failed", variant: "destructive" });
+    }
   };
 
   const submitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!requireAuth() || !post || !user) return;
-    const body = newComment.trim();
-    if (!body) return;
+    const content = newComment.trim();
+    if (!content) return;
     setPosting(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      const newC: Comment = {
-        id: Math.random().toString(36).substr(2, 9),
-        body,
-        created_at: new Date().toISOString(),
-        user_id: user.id,
-        profile: { display_name: "You" }
-      };
-      setComments((prev) => [newC, ...prev]);
+    try {
+      const response = await api.post(`/comments/${post.id}`, {
+        authorName: user.name || user.email,
+        content
+      });
+      setComments((prev) => [response.data, ...prev]);
       setNewComment("");
+      toast({ title: "Comment posted" });
+    } catch (error) {
+      console.error("Failed to post comment:", error);
+      toast({ title: "Failed to post comment", variant: "destructive" });
+    } finally {
       setPosting(false);
-      toast({ title: "Comment posted (local only)" });
-    }, 500);
+    }
   };
 
   const deleteComment = async (id: string) => {
+    // Note: Delete comment endpoint not provided by user, simulating local state
     setComments((c) => c.filter((x) => x.id !== id));
-    toast({ title: "Comment deleted (local only)" });
+    toast({ title: "Comment deleted (local)" });
   };
 
-  const heroBg = useMemo(() => coverBg(post?.cover_color), [post?.cover_color]);
+  const heroBg = useMemo(() => coverBg(post?.coverColor), [post?.coverColor]);
 
   if (loading) {
     return (
@@ -154,25 +178,35 @@ const PostDetail = () => {
       <article className="container max-w-3xl py-8 md:py-10">
         <div className={`h-44 md:h-56 rounded-2xl ${heroBg} mb-6 shadow-elegant`} />
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {post.tags.map((t) => (
+          {post.tags?.map((t) => (
             <Link key={t} to={`/tag/${encodeURIComponent(t)}`} className="tag-chip">#{t}</Link>
           ))}
         </div>
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{post.title}</h1>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span>{formatDate(post.published_at)}</span>
+          <span>{formatDate(post.createdAt)}</span>
           <span>·</span>
-          <span>{readingTime(post.body_md)} min read</span>
-          {post.status === "draft" && (
+          <span>{readingTime(post.content)} min read</span>
+          {!post.published && (
             <span className="ml-2 inline-flex items-center rounded-full bg-warning/15 text-warning px-2 py-0.5 text-xs font-medium">Draft</span>
           )}
         </div>
 
         <div className="mt-4 flex items-center gap-2">
-          <Button variant={liked ? "default" : "outline"} size="sm" onClick={toggleLike} className={liked ? "bg-accent text-accent-foreground hover:bg-accent/90" : ""}>
+          <Button 
+            variant={liked ? "default" : "outline"} 
+            size="sm" 
+            onClick={toggleLike} 
+            className={liked ? "bg-accent text-accent-foreground hover:bg-accent/90" : ""}
+          >
             <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {likes} {likes === 1 ? "like" : "likes"}
           </Button>
-          <Button variant={bookmarked ? "default" : "outline"} size="sm" onClick={toggleBookmark}>
+          <Button 
+            variant={bookmarked ? "default" : "outline"} 
+            size="sm" 
+            onClick={toggleBookmark}
+            className={bookmarked ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
+          >
             <Bookmark className={`h-4 w-4 ${bookmarked ? "fill-current" : ""}`} /> {bookmarked ? "Saved" : "Save"}
           </Button>
           <a href="#comments" className="ml-auto text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
@@ -181,7 +215,7 @@ const PostDetail = () => {
         </div>
 
         <div className="mt-8">
-          <MarkdownRenderer source={post.body_md} />
+          <MarkdownRenderer source={post.content} />
         </div>
 
         {/* Comments */}
@@ -217,20 +251,20 @@ const PostDetail = () => {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                        {(c.profile?.display_name ?? "U").charAt(0).toUpperCase()}
+                        {(c.authorName ?? "U").charAt(0).toUpperCase()}
                       </span>
                       <div>
-                        <p className="text-sm font-medium leading-tight">{c.profile?.display_name ?? "Reader"}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(c.created_at)}</p>
+                        <p className="text-sm font-medium leading-tight">{c.authorName ?? "Reader"}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(c.createdAt)}</p>
                       </div>
                     </div>
-                    {(user?.id === c.user_id || isAdmin) && (
+                    {isAdmin && (
                       <Button variant="ghost" size="icon" onClick={() => deleteComment(c.id)} aria-label="Delete comment">
                         <Trash2 className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     )}
                   </div>
-                  <p className="mt-2 text-sm whitespace-pre-wrap">{c.body}</p>
+                  <p className="mt-2 text-sm whitespace-pre-wrap">{c.content}</p>
                 </li>
               ))}
             </ul>

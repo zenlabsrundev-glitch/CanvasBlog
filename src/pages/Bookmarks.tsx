@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { SiteLayout } from "@/components/layout/SiteLayout";
-import { PostCard, type PostCardData } from "@/components/PostCard";
+import { PostCard } from "@/components/PostCard";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MOCK_POSTS } from "@/lib/mock-data";
+import api from "@/lib/api";
 
 const Bookmarks = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<PostCardData[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { document.title = "Bookmarks · devnotes"; }, []);
@@ -21,13 +21,20 @@ const Bookmarks = () => {
       return;
     }
     
-    setLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      // In demo, just show all posts as bookmarked for the logged in user
-      setPosts(MOCK_POSTS);
-      setLoading(false);
-    }, 500);
+    async function fetchBookmarks() {
+      setLoading(true);
+      try {
+        const response = await api.get("/interactions/bookmarks");
+        setPosts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch bookmarks:", error);
+        // If the endpoint doesn't exist yet, we'll just show an empty list
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBookmarks();
   }, [user, authLoading, navigate]);
 
   return (

@@ -12,19 +12,23 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/posts";
+import api from "@/lib/api";
 
-type Row = {
-  id: string; slug: string; title: string; status: string;
-  published_at: string | null; updated_at: string; tags: string[];
+type Post = {
+  id: string;
+  slug: string;
+  title: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+  tags: string[];
 };
-
-import { MOCK_POSTS } from "@/lib/mock-data";
 
 const Admin = () => {
   const { isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [rows, setRows] = useState<Row[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { document.title = "Admin · devnotes"; }, []);
@@ -37,25 +41,42 @@ const Admin = () => {
 
   async function load() {
     setLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setRows(MOCK_POSTS.map(p => ({
-        ...p,
-        updated_at: p.published_at
-      })) as unknown as Row[]);
+    try {
+      const response = await api.get("/posts");
+      setPosts(response.data);
+    } catch (error) {
+      console.error("Failed to load posts:", error);
+      toast({ title: "Failed to load posts", variant: "destructive" });
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }
 
-  async function togglePublish(row: Row) {
-    const next = row.status === "published" ? "draft" : "published";
-    setRows(prev => prev.map(r => r.id === row.id ? { ...r, status: next } : r));
-    toast({ title: next === "published" ? "Published" : "Unpublished" });
+  async function togglePublish(post: Post) {
+    try {
+      const nextStatus = !post.published;
+      await api.put(`/posts/${post.id}`, {
+        ...post,
+        published: nextStatus
+      });
+      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, published: nextStatus } : p));
+      toast({ title: nextStatus ? "Published" : "Unpublished" });
+    } catch (error) {
+      console.error("Failed to update post status:", error);
+      toast({ title: "Update failed", variant: "destructive" });
+    }
   }
 
   async function remove(id: string) {
-    setRows((r) => r.filter((x) => x.id !== id));
-    toast({ title: "Post deleted (local only)" });
+    try {
+      // User didn't provide DELETE endpoint, assuming /posts/:id
+      await api.delete(`/posts/${id}`);
+      setPosts((p) => p.filter((x) => x.id !== id));
+      toast({ title: "Post deleted" });
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      toast({ title: "Delete failed", variant: "destructive" });
+    }
   }
 
   return (
@@ -75,7 +96,7 @@ const Admin = () => {
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
           </div>
-        ) : rows.length === 0 ? (
+        ) : posts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
             <p className="font-medium text-foreground mb-2">No posts yet</p>
             <Button asChild className="mt-3"><Link to="/admin/new">Create your first post</Link></Button>
@@ -83,27 +104,27 @@ const Admin = () => {
         ) : (
           <div className="rounded-2xl border border-border bg-card overflow-hidden">
             <ul className="divide-y divide-border">
-              {rows.map((r) => (
-                <li key={r.id} className="p-4 flex flex-wrap items-center gap-3">
+              {posts.map((p) => (
+                <li key={p.id} className="p-4 flex flex-wrap items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <Link to={`/post/${r.slug}`} className="font-semibold hover:text-primary truncate">{r.title || "(untitled)"}</Link>
+                      <Link to={`/post/${p.slug}`} className="font-semibold hover:text-primary truncate">{p.title || "(untitled)"}</Link>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        r.status === "published" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
+                        p.published ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
                       }`}>
-                        {r.status}
+                        {p.published ? "published" : "draft"}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Updated {formatDate(r.updated_at)} · /{r.slug}
+                      Updated {formatDate(p.updatedAt)} · /{p.slug}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => togglePublish(r)}>
-                      {r.status === "published" ? <><EyeOff className="h-4 w-4" /> Unpublish</> : <><Eye className="h-4 w-4" /> Publish</>}
+                    <Button variant="outline" size="sm" onClick={() => togglePublish(p)}>
+                      {p.published ? <><EyeOff className="h-4 w-4" /> Unpublish</> : <><Eye className="h-4 w-4" /> Publish</>}
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link to={`/admin/edit/${r.id}`}><Edit className="h-4 w-4" /> Edit</Link>
+                      <Link to={`/admin/edit/${p.id}`}><Edit className="h-4 w-4" /> Edit</Link>
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -112,11 +133,11 @@ const Admin = () => {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete this post?</AlertDialogTitle>
-                          <AlertDialogDescription>This permanently removes "{r.title}" and all its comments, likes and bookmarks.</AlertDialogDescription>
+                          <AlertDialogDescription>This permanently removes "{p.title}" and all its comments, likes and bookmarks.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => remove(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                          <AlertDialogAction onClick={() => remove(p.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>

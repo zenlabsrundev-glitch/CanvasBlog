@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bookmark, Heart, MessageCircle } from "lucide-react";
+import { Bookmark, MessageCircle } from "lucide-react";
 import { formatDate, readingTime } from "@/lib/posts";
 
 export type PostCardData = {
@@ -8,11 +8,16 @@ export type PostCardData = {
   title: string;
   excerpt: string | null;
   tags: string[];
-  cover_color: string;
-  body_md: string;
-  published_at: string | null;
-  likes: number;
-  comments: number;
+  coverColor?: string; // New API
+  cover_color?: string; // Mock data
+  content?: string; // New API
+  body_md?: string; // Mock data
+  createdAt?: string; // New API
+  published_at?: string | null; // Mock data
+  likesCount?: number; // New API
+  likes?: number; // Mock data
+  commentsCount?: number; // New API
+  comments?: number; // Mock data
   bookmarks?: number;
 };
 
@@ -46,8 +51,14 @@ const shadowMap = {
 };
 
 export const PostCard = ({ post }: { post: PostCardData }) => {
-  const accent = accentForPost(post.cover_color);
+  const color = post.coverColor || post.cover_color || "indigo";
+  const accent = accentForPost(color);
   const s = shadowMap[accent];
+  
+  const date = post.createdAt || post.published_at;
+  const content = post.content || post.body_md || "";
+  const likes = post.likesCount ?? post.likes ?? 0;
+  const comments = post.commentsCount ?? post.comments ?? 0;
 
   return (
     <article
@@ -55,9 +66,9 @@ export const PostCard = ({ post }: { post: PostCardData }) => {
     >
       <div className="p-6 flex flex-col flex-1 gap-4">
         <header className="flex justify-between items-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          <span>{formatDate(post.published_at)}</span>
+          <span>{formatDate(date)}</span>
           <span className="bg-muted px-2 py-1 border border-border rounded-sm">
-            {readingTime(post.body_md)} min
+            {readingTime(content)} min
           </span>
         </header>
 
@@ -71,7 +82,7 @@ export const PostCard = ({ post }: { post: PostCardData }) => {
           <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{post.excerpt}</p>
         )}
 
-        {post.tags.length > 0 && (
+        {post.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
             {post.tags.slice(0, 3).map((t, i) => (
               <Link
@@ -89,9 +100,9 @@ export const PostCard = ({ post }: { post: PostCardData }) => {
       </div>
 
       <footer className="border-t border-border px-6 py-3 flex justify-between items-center font-mono text-xs bg-muted/40 rounded-b-sm">
-        <span className="text-foreground tabular-nums">[ {post.likes} {post.likes === 1 ? "like" : "likes"} ]</span>
+        <span className="text-foreground tabular-nums">[ {likes} {likes === 1 ? "like" : "likes"} ]</span>
         <span className="flex items-center gap-3 text-muted-foreground tabular-nums">
-          <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {post.comments}</span>
+          <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {comments}</span>
           {typeof post.bookmarks === "number" && (
             <span className="inline-flex items-center gap-1"><Bookmark className="h-3 w-3" /> {post.bookmarks}</span>
           )}

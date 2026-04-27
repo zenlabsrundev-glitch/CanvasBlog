@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { COVER_COLORS, slugify } from "@/lib/posts";
 import { ArrowLeft, Save, Send } from "lucide-react";
+import api from "@/lib/api";
 
 const STARTER = `# Hello, world
 
@@ -29,8 +30,6 @@ function greet(name: string) {
 > Tip: use the right pane to preview live.
 `;
 
-import { MOCK_POSTS } from "@/lib/mock-data";
-
 const Editor = () => {
   const { id } = useParams();
   const isEdit = !!id;
@@ -46,7 +45,7 @@ const Editor = () => {
   const [tagsInput, setTagsInput] = useState("");
   const [coverColor, setCoverColor] = useState<string>("indigo");
   const [body, setBody] = useState(STARTER);
-  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [published, setPublished] = useState(false);
   const [slugTouched, setSlugTouched] = useState(false);
 
   useEffect(() => { document.title = isEdit ? "Edit post · devnotes" : "New post · devnotes"; }, [isEdit]);
@@ -56,22 +55,34 @@ const Editor = () => {
     if (!isAdmin) { navigate("/"); return; }
     if (!isEdit) { setLoading(false); return; }
     
-    // Simulate loading existing post
-    setTimeout(() => {
-      const found = MOCK_POSTS.find(p => p.id === id);
-      if (found) {
-        setTitle(found.title);
-        setSlug(found.slug);
-        setExcerpt(found.excerpt ?? "");
-        setTagsInput((found.tags ?? []).join(", "));
-        setCoverColor(found.cover_color);
-        setBody(found.body_md || "");
-        setStatus(found.status);
-        setSlugTouched(true);
+    async function loadPost() {
+      setLoading(true);
+      try {
+        // Fetch all posts and find the one with this ID (since /posts/:id might not be available by slug, but user provided PUT by ID)
+        // Actually, user provided GET by slug, let's try that or just get the list.
+        // I'll try to find it in the list for now or assume GET /posts/:id works if provided.
+        const response = await api.get("/posts");
+        const found = response.data.find((p: any) => p.id === id);
+        
+        if (found) {
+          setTitle(found.title);
+          setSlug(found.slug);
+          setExcerpt(found.excerpt ?? "");
+          setTagsInput((found.tags ?? []).join(", "));
+          setCoverColor(found.coverColor || found.cover_color || "indigo");
+          setBody(found.content || found.body_md || "");
+          setPublished(found.published);
+          setSlugTouched(true);
+        }
+      } catch (error) {
+        console.error("Failed to load post for editing:", error);
+        toast({ title: "Failed to load post", variant: "destructive" });
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
-  }, [isAdmin, authLoading, id]);
+    }
+    loadPost();
+  }, [isAdmin, authLoading, id, isEdit]);
 
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(title));
@@ -82,24 +93,43 @@ const Editor = () => {
     [tagsInput]
   );
 
-  async function save(nextStatus: "draft" | "published") {
+  async function save(shouldPublish: boolean) {
     if (!user) return;
     if (!title.trim()) { toast({ title: "Title is required", variant: "destructive" }); return; }
     const finalSlug = slug.trim() || slugify(title);
     if (!finalSlug) { toast({ title: "Slug is required", variant: "destructive" }); return; }
     setSaving(true);
     
-    // Simulate save delay
-    setTimeout(() => {
-      setSaving(false);
-      setStatus(nextStatus);
-      toast({ title: nextStatus === "published" ? "Published 🎉 (Demo)" : "Draft saved (Demo)" });
-      if (nextStatus === "published") {
+    const postData = {
+      title,
+      slug: finalSlug,
+      content: body,
+      excerpt,
+      coverColor,
+      tags,
+      published: shouldPublish
+    };
+
+    try {
+      if (isEdit) {
+        await api.put(`/posts/${id}`, postData);
+        toast({ title: "Post updated" });
+      } else {
+        await api.post("/posts", postData);
+        toast({ title: shouldPublish ? "Post published 🎉" : "Draft created" });
+      }
+      
+      if (shouldPublish) {
         navigate(`/post/${finalSlug}`);
-      } else if (!isEdit) {
+      } else {
         navigate("/admin");
       }
-    }, 1000);
+    } catch (error) {
+      console.error("Failed to save post:", error);
+      toast({ title: "Failed to save post", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) {
@@ -114,11 +144,11 @@ const Editor = () => {
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => save("draft")} disabled={saving}>
-              <Save className="h-4 w-4" /> Save draft
+            <Button variant="outline" onClick={() => save(false)} disabled={saving}>
+              <Save className="h-4 w-4" /> {isEdit && !published ? "Save draft" : "Keep as draft"}
             </Button>
-            <Button onClick={() => save("published")} disabled={saving}>
-              <Send className="h-4 w-4" /> {status === "published" ? "Update published" : "Publish"}
+            <Button onClick={() => save(true)} disabled={saving}>
+              <Send className="h-4 w-4" /> {isEdit && published ? "Update published" : "Publish"}
             </Button>
           </div>
         </div>
