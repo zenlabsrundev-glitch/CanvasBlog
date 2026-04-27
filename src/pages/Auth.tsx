@@ -6,17 +6,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 import { UserLoginForm } from "@/components/auth/UserLoginForm";
+import { UserSignupForm } from "@/components/auth/UserSignupForm";
 
 const Auth = () => {
   const [sp] = useSearchParams();
   const initialTab = sp.get("role") === "admin" ? "admin" : "user";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [userAuthMode, setUserAuthMode] = useState<"login" | "signup">("login");
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    document.title = activeTab === "admin" ? "Admin Login · devnotes" : "Reader Login · devnotes";
-  }, [activeTab]);
+    if (activeTab === "admin") {
+      document.title = "Admin Login · devnotes";
+    } else {
+      document.title = userAuthMode === "login" ? "Reader Login · devnotes" : "Reader Signup · devnotes";
+    }
+  }, [activeTab, userAuthMode]);
 
   return (
     <div className="min-h-screen grid place-items-center bg-gradient-hero px-4 py-10">
@@ -27,9 +33,15 @@ const Auth = () => {
         </Link>
         <Card className="shadow-card border-border overflow-hidden">
           <CardHeader className="bg-muted/30 pb-4">
-            <CardTitle className="text-2xl font-display font-bold">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-display font-bold">
+              {activeTab === "admin" ? "Admin Access" : userAuthMode === "login" ? "Welcome back" : "Join devnotes"}
+            </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Select your access portal below to continue.
+              {activeTab === "admin" 
+                ? "Enter your credentials to manage the blog." 
+                : userAuthMode === "login" 
+                  ? "Select your access portal below to continue." 
+                  : "Create an account to like, bookmark and comment."}
             </p>
           </CardHeader>
           <CardContent className="pt-6">
@@ -50,7 +62,11 @@ const Auth = () => {
               </TabsList>
               
               <TabsContent value="user">
-                <UserLoginForm />
+                {userAuthMode === "login" ? (
+                  <UserLoginForm onToggleMode={() => setUserAuthMode("signup")} />
+                ) : (
+                  <UserSignupForm onToggleMode={() => setUserAuthMode("login")} />
+                )}
               </TabsContent>
               
               <TabsContent value="admin">

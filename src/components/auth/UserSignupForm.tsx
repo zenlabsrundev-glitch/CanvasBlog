@@ -5,28 +5,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
-export const UserLoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
+export const UserSignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const result = await signIn(email, password);
+    const result = await signUp(email, password, name, "user");
     
     if (result.success) {
-      toast({ title: "Login Success", description: "Welcome back to devnotes." });
+      toast({ title: "Account Created", description: `Welcome to devnotes, ${name}!` });
       navigate("/");
     } else {
       toast({ 
-        title: "Login Failed", 
+        title: "Registration Failed", 
         description: result.message,
         variant: "destructive"
       });
@@ -38,32 +39,43 @@ export const UserLoginForm = ({ onToggleMode }: { onToggleMode: () => void }) =>
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
       <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <UserCircle className="h-5 w-5" />
-        <span className="font-mono text-xs font-bold uppercase tracking-widest">Reader Access</span>
+        <UserPlus className="h-5 w-5" />
+        <span className="font-mono text-xs font-bold uppercase tracking-widest">New Reader Registration</span>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="user-email">Email</Label>
+        <Label htmlFor="signup-name">Full Name</Label>
         <Input 
-          id="user-email" 
+          id="signup-name" 
+          type="text" 
+          placeholder="John Doe"
+          required 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="signup-email">Email</Label>
+        <Input 
+          id="signup-email" 
           type="email" 
-          placeholder="reader@devnotes.com"
+          placeholder="your@email.com"
           required 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="user-password">Password</Label>
+        <Label htmlFor="signup-password">Password</Label>
         <Input 
-          id="user-password" 
+          id="signup-password" 
           type="password" 
           required 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
         />
       </div>
-      <Button type="submit" variant="outline" className="w-full shadow-card" disabled={isSubmitting}>
-        {isSubmitting ? "Authenticating..." : "Sign In to Read"}
+      <Button type="submit" variant="default" className="w-full shadow-card bg-primary text-primary-foreground hover:bg-primary/90" disabled={isSubmitting}>
+        {isSubmitting ? "Creating Account..." : "Create Reader Account"}
       </Button>
       <div className="text-center mt-4">
         <button 
@@ -71,7 +83,7 @@ export const UserLoginForm = ({ onToggleMode }: { onToggleMode: () => void }) =>
           onClick={onToggleMode}
           className="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
         >
-          Don't have an account? Create one
+          Already have an account? Sign in
         </button>
       </div>
     </form>

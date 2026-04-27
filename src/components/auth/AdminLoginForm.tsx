@@ -10,20 +10,29 @@ import { ShieldCheck } from "lucide-react";
 export const AdminLoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { signIn } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      signIn(email);
+    setIsSubmitting(true);
+    
+    const result = await signIn(email, password);
+    
+    if (result.success) {
       toast({ title: "Admin Authenticated", description: "Welcome to the control panel." });
-      setLoading(false);
       navigate("/admin");
-    }, 800);
+    } else {
+      toast({ 
+        title: "Auth Failed", 
+        description: result.message,
+        variant: "destructive"
+      });
+    }
+    
+    setIsSubmitting(false);
   };
 
   return (
@@ -53,8 +62,8 @@ export const AdminLoginForm = () => {
           onChange={(e) => setPassword(e.target.value)} 
         />
       </div>
-      <Button type="submit" className="w-full keycap-primary" disabled={loading}>
-        {loading ? "Verifying..." : "Access Dashboard"}
+      <Button type="submit" className="w-full keycap-primary" disabled={isSubmitting}>
+        {isSubmitting ? "Verifying..." : "Access Dashboard"}
       </Button>
     </form>
   );
