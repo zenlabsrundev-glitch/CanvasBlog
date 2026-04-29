@@ -22,3 +22,35 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Build output
+dist/
+
+# dependencies
+/node_modules
+
+# production build
+/dist
+/build
+
+# Next.js build output
+/.next/
+/out/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# environment variables
+.env*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# testing
+/coverage
+
+# misc
+*.local
